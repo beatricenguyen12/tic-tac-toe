@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Asap:wght@400;500;700&family=Space+Mono&family=Work+Sans:wght@300;400;700;900&display=swap');
+      :root {
+        --clr-primary: rgb(54, 112, 199);
+        --clr-light: #f4f4f4;
+        --clr-dark: rgb(36, 39, 46);
+        --clr-playerX: #d2691e;
+        --clr-playerO: #228b22;
+        --clr-warning: #ff0000;
+      }
+      * {
+        background: var(--clr-dark);
+        color: var(--clr-light);
+        font-family: 'Space Mono', sans-serif;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .square:hover,
+      .clear-board:hover,
+      .reset-game:hover {
+        cursor: pointer;
+      }
+      h1 {
+        font-size: 36px;
+        font-weight: bold;
+      }
+      .message {
+        margin: 30px auto;
+        font-size: 24px;
+        color: var(--clr-playerX);
+      }
+      .tie-message {
+        color: var(--clr-light);
+      }
+      .score-row {
+        margin: 0 auto;
+        width: 450px;
+        height: 50px;
+        display: grid;
+        grid-template: 1fr / repeat(3, 1fr);
+      }
+      .score {
+        border: 3px solid white;
+        border-radius: 10px;
+        font-size: 30px;
+      }
+      .player-O,
+      .player-X {
+        border-radius: 10px;
+        color: var(--clr-dark);
+        margin: 0px 20px;
+        font-size: 20px;
+      }
+      .player-O {
+        background-color: var(--clr-playerX);
+        border: 3px solid var(--clr-playerX);
+      }
+      .player-X {
+        background-color: var(--clr-playerO);
+        border: 3px solid var(--clr-playerO);
+      }
+      .game-grid {
+        margin: 45px auto;
+        height: 360px;
+        width: 360px;
+        display: grid;
+        grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+        font-size: 80px;
+      }
+      .horizontal-rule {
+        border: dashed bottom 3px blue;
+      }
+      .square:hover {
+        background-color: #596071;
+      }
+      .square:disabled {
+        background-color: var(--clr-dark);
+      }
+      .square {
+        font-size: min(60px, 10vw);
+        aspect-ratio: 1 / 1;
+        height: 120px;
+        width: 120px;
+        margin: 0;
+        border: 2px solid var(--clr-light);
+      }
+      .playerX-filled {
+        color: var(--clr-playerX);
+      }
+      .playerO-filled {
+        color: var(--clr-playerO);
+      }
+      .no-top-border {
+        border-top: transparent;
+      }
+      .no-right-border {
+        border-right: transparent;
+      }
+      .no-bottom-border {
+        border-bottom: transparent;
+      }
+      .no-left-border {
+        border-left: transparent;
+      }
+      .reset-row {
+        margin: 0 auto;
+      }
+      .clear-board,
+      .reset-game {
+        margin: 0 60px;
+        font-size: 20px;
+        color: var(--clr-warning);
+        border: transparent;
+      }
+      .clear-board:hover,
+      .reset-game:hover {
+        color: var(--clr-dark);
+        background-color: var(--clr-warning);
+        opacity: 0.7;
+        border: 3px solid var(--clr-dark);
+        border-radius: 10px;
+      }
+      /* .modal, .modal-message, .modal-clear-board, .modal-reset-game {
+        background-color: white;
+        color: var(--clr-dark);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        height: 240px;
+        width: 360px;
+        z-index: 5;
+      } */
+    </style>
+    <title>Tic-Tac-Toe</title>
+  </head>
+
+  <body>
+    <h1>Let's Play Tic-Tac-Toe!</h1>
+
+    <div class="message">Player X, make your move!</div>
+
+    <div class="score-row">
+      <div class="player-O">Player X</div>
+      <div class="score">
+        <span class="playerX-score">0</span> :
+        <span class="playerO-score">0</span>
+      </div>
+      <div class="player-X">Player O</div>
+    </div>
+
+    <div class="game-grid">
+      <button class="square no-top-border no-left-border"></button>
+      <button class="square no-top-border"></button>
+      <button class="square no-top-border no-right-border"></button>
+
+      <button class="square no-left-border"></button>
+      <button class="square"></button>
+      <button class="square no-right-border"></button>
+
+      <button class="square no-bottom-border no-left-border"></button>
+      <button class="square no-bottom-border"></button>
+      <button class="square no-right-border no-bottom-border"></button>
+      <hr class="horizontal-rule" />
+    </div>
+
+    <div class="reset-row">
+      <span>
+        <button class="clear-board">Clear Board</button>
+        <button class="reset-game">Reset Game</button>
+      </span>
+    </div>
+
+    <!-- <div class="modal">
+      <div class="modal-message">Player X, make your move!</div>
+      <span>
+        <button class="modal-clear-board">Clear Board</button>
+        <button class="modal-reset-game">Reset Game</button>
+      </span>
+    </div> -->
+
+    <script>
+      /** DOM Elements **/
+      const message = document.querySelector('.message');
+      const squareArray = Array.from(document.querySelectorAll('.square'));
+      let playerXscore_html = document.querySelector('.playerX-score');
+      let playerOscore_html = document.querySelector('.playerO-score');
+
+      /** JS variables **/
+      let gameGridArray = Array(9).fill(null);
+      let turn = 'O';
+      let playerXscore = 0;
+      let playerOscore = 0;
+      let win;
+      let winningCombos = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      /** Change color and update message depending on which player's turn **/
+      function messageUpdate() {
+        const messages = ["it's your turn!", 'make your move!', 'bring it on!'];
+        var randomIndx = Math.floor(Math.random() * 3);
+        turnMessage = messages[randomIndx];
+        if (turn === 'O') {
+          message.textContent = `Player X, ${turnMessage}`;
+          message.classList.remove('playerO-filled');
+          message.classList.add('playerX-filled');
+        } else {
+          message.textContent = `Player O, ${turnMessage}`;
+          message.classList.remove('playerX-filled');
+          message.classList.add('playerO-filled');
+        }
+      }
+
+      /** When a square is clicked, add X or O depending on which player turn **/
+      // initial state of game
+      function init() {
+        gameGridArray = Array(9).fill(null);
+        turn = 'O';
+        render();
+        resetSquareAttr();
+      }
+      // update square textContent and attribute according to value of gameGridArray
+      function render() {
+        // iterate gameGridArray and set square[index].textContent = gameGridArray[index].mark
+        gameGridArray.forEach(function (mark, index) {
+          squareArray[index].textContent = mark;
+        });
+        // // update message at each player turn
+        // messageUpdate();
+      }
+      function getWinner() {
+        let winner = null;
+        winningCombos.forEach(function (combo, index) {
+          if (
+            gameGridArray[combo[0]] &&
+            gameGridArray[combo[0]] === gameGridArray[combo[1]] &&
+            gameGridArray[combo[0]] === gameGridArray[combo[2]]
+          ) {
+            winner = gameGridArray[combo[0]];
+          }
+        });
+        if (winner === 'X') {
+          playerXscore++;
+          playerXscore_html.textContent = playerXscore;
+          return winner;
+        } else if (winner === 'O') {
+          playerOscore++;
+          playerOscore_html.textContent = playerOscore;
+          return winner;
+        } else if (gameGridArray.every((element) => element !== null)) {
+          return 'Tie';
+        } else {
+          return null;
+        }
+      }
+      // mark X or O depending on which player's turn
+      function handleTurn(event) {
+        // find index of square from squareArray
+        let idx = squareArray.findIndex(function (square) {
+          return square === event.target;
+        });
+        // mark X or O and update squareArray
+        if (turn === 'O') {
+          turn = 'X';
+          squareArray[idx].classList.add('playerX-filled');
+        } else {
+          turn = 'O';
+          squareArray[idx].classList.add('playerO-filled');
+        }
+        gameGridArray[idx] = turn;
+        squareArray[idx].setAttribute('disabled', true);
+        win = getWinner();
+        // disable grid buttons if there's a result
+        if (win !== null) {
+          squareArray.forEach(function (square) {
+            square.setAttribute('disabled', true);
+          });
+        }
+
+        // alert and announce result
+        if (win === 'Tie') {
+          message.textContent = `Tie game!`;
+          message.classList.remove('playerO-filled');
+          message.classList.remove('playerX-filled');
+          message.classList.add('tie-message');
+          alert(`Tie game!`);
+        } else if (win) {
+          message.textContent = `${win} wins the game!`;
+          alert(`${win} wins the game!`);
+        } else {
+          messageUpdate();
+        }
+        render();
+      }
+
+      // when a square is click, handleTurn determines which player turns, then add x or o
+      document
+        .querySelector('.game-grid')
+        .addEventListener('click', handleTurn);
+
+      /** clear-board and reset-game **/
+      // when init is called, reset all squares to default attribute
+      function resetSquareAttr() {
+        squareArray.forEach(function (square) {
+          square.removeAttribute('disabled');
+          square.classList.remove('playerX-filled');
+          square.classList.remove('playerO-filled');
+        });
+      }
+      // when you click on clear-board, delete all x and o
+      document.querySelector('.clear-board').addEventListener('click', init);
+      // when you click on reset-game, clear-gameGridArray action and delete score
+      function resetGame() {
+        init();
+        // reset scores
+        playerXscore = 0;
+        playerXscore_html.textContent = playerXscore;
+        playerOscore = 0;
+        playerOscore_html.textContent = playerOscore;
+      }
+      document
+        .querySelector('.reset-game')
+        .addEventListener('click', resetGame);
+    </script>
+  </body>
+</html>
